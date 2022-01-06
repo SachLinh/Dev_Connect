@@ -128,7 +128,7 @@ export default function Post() {
             onClick={() => {clickDelete()} }
           >
             <i className="fas fa-times"></i>
-          </button> : ""}
+          </button> : " "}
             </div>
           </div>
           )

@@ -22,11 +22,12 @@ export const getPostsById = createAsyncThunk("posts/getPostById", async (payload
         console.log(error);
     }
 });
-export const getLike = createAsyncThunk("posts/likePost", async (id)=>{
+export const getLike = createAsyncThunk("posts/likePost", async (payload)=>{
     try {
         
-        const res = await api.put(`/api/posts/like/${id}`);
-        return {res, id};
+        const res = await api.put(`/api/posts/like/${payload.idPost}`,payload.formLike);
+        console.log(res);
+        return res;
     } catch (error) {
         console.log(error);
     }
@@ -51,9 +52,15 @@ export const getComment = createAsyncThunk("posts/Comment", async (payload)=>{
 });
 export const DeleteComment = createAsyncThunk("posts/DeleteComment", async (payload)=>{
     try {
-        console.log(payload);
         const res = await api.delete(`/api/posts/comment/${payload.id}/${payload.IdCM}`);
-        console.log(res);
+        return res.data;
+    } catch (error) {
+        console.log(error);
+    }
+});
+export const DeletePost = createAsyncThunk("posts/DeletePost", async (payload)=>{
+    try {
+        const res = await api.delete(`/api/posts/${payload.idPost}`);
         return res.data;
     } catch (error) {
         console.log(error);
@@ -88,6 +95,9 @@ export const postSlice = createSlice({
         .addCase(getPosts.rejected,(state,action)=>{
            state.loading = false;
         })
+
+
+
         // create post
         .addCase(CreatePost.pending,(state,action)=>{
            state.loading = true;
@@ -99,6 +109,8 @@ export const postSlice = createSlice({
         .addCase(CreatePost.rejected,(state,action)=>{
            state.loading = false;
         })
+
+
        // get post by id
        .addCase(getPostsById.pending,(state,action)=>{
         state.loading = true;
@@ -110,6 +122,9 @@ export const postSlice = createSlice({
         .addCase(getPostsById.rejected,(state,action)=>{
         state.loading = false;
         })
+
+
+
        // get comment by id
        .addCase(getComment.pending,(state,action)=>{
         state.loading = true;
@@ -121,6 +136,29 @@ export const postSlice = createSlice({
         .addCase(getComment.rejected,(state,action)=>{
         state.loading = false;
         })
+
+
+
+       // delete post
+       .addCase(DeletePost.pending,(state,action)=>{
+        state.loading = true;
+        })
+       .addCase(DeletePost.fulfilled,(state,action)=>{
+        state.loading = false;
+        for(let i =0; i<(state.dataPosts).length; i++)
+        {
+            if(state.dataPosts[i]._id === action.payload)
+            {
+                state.dataPosts.splice(action.payload,1);
+            }
+        }
+        })
+        .addCase(DeletePost.rejected,(state,action)=>{
+        state.loading = false;
+        })
+
+
+
        // delete comment
        .addCase(DeleteComment.pending,(state,action)=>{
         state.loading = true;
@@ -138,6 +176,9 @@ export const postSlice = createSlice({
         .addCase(DeleteComment.rejected,(state,action)=>{
         state.loading = false;
         })
+
+
+
         // like
         .addCase(getLike.pending,(state,action)=>{
             state.loading = true;
@@ -146,9 +187,9 @@ export const postSlice = createSlice({
             state.loading = false;
             for(let i =0; i<(state.dataPosts).length; i++)
             {
-                if(state.dataPosts[i]._id === action.payload.id)
+                if(state.dataPosts[i]._id === action.payload.idPost)
                 {
-                    state.dataPosts[i].likes.push(action.payload.data);
+                    state.dataPosts[i].likes.push(action.payload.data[0]);
                 }
             }
             
@@ -156,6 +197,9 @@ export const postSlice = createSlice({
          .addCase(getLike.rejected,(state,action)=>{
             state.loading = false;
          })
+
+
+
         // Un like
         .addCase(getUnLike.pending,(state,action)=>{
             state.loading = true;

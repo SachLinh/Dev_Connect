@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { CreatePost, getLike, getPosts, getUnLike } from '../feature/post/PostSlice';
+import { CreatePost, DeletePost, getLike, getPosts, getUnLike } from '../feature/post/PostSlice';
 import { getLoggedProfile } from '../feature/profile/ProfileSlice';
 
 const initState= {
@@ -21,9 +21,16 @@ export default function Posts() {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState(initState);
   const { text} = formData;
+
+  const init = {id:"", user:""};
+  const [formLike, setformLike] = useState(init);
+
   useEffect( () => {
      dispatch(getPosts());
      dispatch(getLoggedProfile());
+     setformLike({
+       user:profile?.data?.user?._id
+     })
   }, [])
   const onChange = (e) => {
     setFormData({
@@ -55,8 +62,19 @@ export default function Posts() {
       </Fragment>
     )
   }
+  
   else{
-    const post = posts.dataPosts.map((item,index)=>{
+    const post = posts?.dataPosts?.map((item,index)=>{
+      
+      let idPost = item._id;
+      const DelPost = async () =>{
+        await dispatch(DeletePost({idPost,formLike}));
+        await dispatch(getPosts());
+      }
+      const like = async () =>{
+        await dispatch(getLike({idPost}));
+        await dispatch(getPosts());
+      }
       return(
         <div key={index}>
               <div className="posts">
@@ -78,22 +96,30 @@ export default function Posts() {
              <p className="post-date">
                 {item.date}
             </p>
-            <button type="button" className="btn btn-light" onClick={() => {dispatch(getLike(item._id))}}>
+            <button type="button" className="btn btn-light" onClick={() => {like()}}>
               <i className="fas fa-thumbs-up"></i>
               <span>{(item.likes).length}</span>
             </button>
-            <button type="button" className="btn btn-light" onClick={() => {dispatch(getUnLike(item._id))}}>
+            <button type="button" className="btn btn-light" onClick={() => {dispatch(getUnLike(item._id,formLike))}}>
               <i className="fas fa-thumbs-down"></i>
             </button>
             <Link to={`/posts/${item._id}`} className="btn btn-primary">
               Discussion <span className='comment-count'>2</span>
             </Link>
-            <button      
+            {profile?.data?.user?._id === item.user ? <button      
             type="button"
             className="btn btn-danger"
+            onClick={() => {DelPost()}}
           >
             <i className="fas fa-times"></i>
-          </button>
+          </button> : ""}
+          {/* <button      
+            type="button"
+            className="btn btn-danger"
+            onClick={() => {DeletePost()}}
+          >
+            <i className="fas fa-times"></i>
+          </button>  */}
           </div>
         </div>
       </div>
